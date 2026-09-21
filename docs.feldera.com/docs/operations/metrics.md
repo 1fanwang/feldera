@@ -23,6 +23,24 @@ sample Grafana dashboard for Feldera.
 [Monitoring and Profiling]: /tutorials/monitoring
 [Feldera template dashboard]: https://raw.githubusercontent.com/feldera/feldera/main/deploy/grafana_dashboard.json
 
+# Pipeline Status
+
+These metrics report the status of a pipeline, the same status that `GET
+/v0/pipelines/{name}` reports.  The pipeline manager adds them to its
+own `/v0/metrics` endpoint instead of the pipeline exporting them, so,
+unlike every other metric here, they are reported for pipelines that
+are not running.
+
+Every status has its own series, labeled `status`: the status that the
+pipeline is in has value 1 and the others have value 0.  To alert on
+every pipeline that is not running, for example, use
+`pipeline_status{status="Running"} == 0`.
+
+| Name | Type | Description |
+| :--- | :--- | :---------- |
+| <a name='pipeline_desired_status'>`pipeline_desired_status`</a> |gauge | Status the pipeline was asked to reach: 1 for that status, 0 for the others. |
+| <a name='pipeline_status'>`pipeline_status`</a> |gauge | Status of the pipeline: 1 for the status it is in, 0 for the others. |
+
 # Process Metrics
 
 These metrics report statistics for a running Feldera pipeline

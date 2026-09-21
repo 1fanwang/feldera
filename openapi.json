@@ -571,11 +571,11 @@
           "Metrics & Debugging"
         ],
         "summary": "List All Metrics",
-        "description": "Required role: `read` or higher.\n\nRetrieve the metrics of all running pipelines belonging to this tenant.\n\nThe metrics are collected by making individual HTTP requests to `/metrics`\nendpoint of each pipeline, of which only successful responses are included\nin the returned list.",
+        "description": "Required role: `read` or higher.\n\nRetrieve the metrics of all pipelines belonging to this tenant.\n\nThe metrics are collected by making individual HTTP requests to `/metrics`\nendpoint of each pipeline, of which only successful responses are included\nin the returned list.",
         "operationId": "get_metrics",
         "responses": {
           "200": {
-            "description": "Metrics of all running pipelines belonging to this tenant in Prometheus format",
+            "description": "Metrics of all pipelines belonging to this tenant in Prometheus format",
             "content": {
               "text/plain": {
                 "schema": {

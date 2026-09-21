@@ -6925,7 +6925,7 @@ export type GetMetricsData = {
 
 export type GetMetricsResponses = {
   /**
-   * Metrics of all running pipelines belonging to this tenant in Prometheus format
+   * Metrics of all pipelines belonging to this tenant in Prometheus format
    */
   200: Blob | File
 }

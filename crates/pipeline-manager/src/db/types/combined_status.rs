@@ -40,6 +40,44 @@ pub enum CombinedStatus {
 }
 
 impl CombinedStatus {
+    pub const ALL: [Self; 15] = [
+        Self::Stopped,
+        Self::Provisioning,
+        Self::Unavailable,
+        Self::Coordination,
+        Self::Standby,
+        Self::AwaitingApproval,
+        Self::Initializing,
+        Self::Bootstrapping,
+        Self::ConcurrentBootstrapping,
+        Self::Synchronizing,
+        Self::Replaying,
+        Self::Paused,
+        Self::Running,
+        Self::Suspended,
+        Self::Stopping,
+    ];
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Stopped => "Stopped",
+            Self::Provisioning => "Provisioning",
+            Self::Unavailable => "Unavailable",
+            Self::Coordination => "Coordination",
+            Self::Standby => "Standby",
+            Self::AwaitingApproval => "AwaitingApproval",
+            Self::Initializing => "Initializing",
+            Self::Bootstrapping => "Bootstrapping",
+            Self::ConcurrentBootstrapping => "ConcurrentBootstrapping",
+            Self::Synchronizing => "Synchronizing",
+            Self::Replaying => "Replaying",
+            Self::Paused => "Paused",
+            Self::Running => "Running",
+            Self::Suspended => "Suspended",
+            Self::Stopping => "Stopping",
+        }
+    }
+
     pub fn new(resources_status: ResourcesStatus, runtime_status: Option<RuntimeStatus>) -> Self {
         match resources_status {
             ResourcesStatus::Stopped => Self::Stopped,
@@ -89,6 +127,26 @@ pub enum CombinedDesiredStatus {
 }
 
 impl CombinedDesiredStatus {
+    pub const ALL: [Self; 6] = [
+        Self::Stopped,
+        Self::Unavailable,
+        Self::Standby,
+        Self::Paused,
+        Self::Running,
+        Self::Suspended,
+    ];
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Stopped => "Stopped",
+            Self::Unavailable => "Unavailable",
+            Self::Standby => "Standby",
+            Self::Paused => "Paused",
+            Self::Running => "Running",
+            Self::Suspended => "Suspended",
+        }
+    }
+
     pub fn new(
         resources_desired_status: ResourcesDesiredStatus,
         initial: Option<RuntimeDesiredStatus>,
@@ -136,5 +194,20 @@ pub fn combine_since(
         std::cmp::max(resources_since, runtime_status_since)
     } else {
         resources_since
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::{CombinedDesiredStatus, CombinedStatus};
+
+    #[test]
+    fn as_str_matches_the_api_representation() {
+        for status in CombinedStatus::ALL {
+            assert_eq!(serde_json::to_value(status).unwrap(), status.as_str());
+        }
+        for status in CombinedDesiredStatus::ALL {
+            assert_eq!(serde_json::to_value(status).unwrap(), status.as_str());
+        }
     }
 }

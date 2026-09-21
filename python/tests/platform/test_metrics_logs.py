@@ -1,4 +1,5 @@
 import json
+import re
 import time
 import uuid
 from contextlib import closing
@@ -93,6 +94,61 @@ def test_pipeline_metrics(pipeline_name):
     # Invalid
     r_bad = get(api_url(f"/pipelines/{pipeline_name}/metrics?format=does-not-exist"))
     assert r_bad.status_code == HTTPStatus.BAD_REQUEST
+
+
+def _reported_statuses(text: str, pipeline_name: str, metric: str) -> dict[str, int]:
+    """Returns the status to value mapping that `metric` reports for `pipeline_name`."""
+    statuses = {}
+    for line in text.splitlines():
+        m = re.fullmatch(rf"{metric}\{{(.*)\}} (\d+)", line)
+        if not m:
+            continue
+        labels = dict(re.findall(r'(\w+)="([^"]*)"', m.group(1)))
+        if labels["pipeline_name"] == pipeline_name:
+            statuses[labels["status"]] = int(m.group(2))
+    return statuses
+
+
+def _assert_reports(text: str, pipeline_name: str, status: str, desired_status: str):
+    for metric, expected in (
+        ("pipeline_status", status),
+        ("pipeline_desired_status", desired_status),
+    ):
+        reported = _reported_statuses(text, pipeline_name, metric)
+        assert [s for s, value in reported.items() if value == 1] == [expected], (
+            metric,
+            reported,
+        )
+        assert len(reported) > 1, (
+            f"{metric} reports only the current status: {reported}"
+        )
+
+
+@gen_pipeline_name
+def test_pipeline_status_metrics(pipeline_name):
+    """
+    Tests that the status of a pipeline is reported throughout its lifecycle,
+    including while it is stopped and therefore exports no metrics of its own.
+    """
+    create_pipeline(pipeline_name, "")
+    r = get(api_url("/metrics"))
+    assert r.status_code == HTTPStatus.OK, r.text
+    assert "# TYPE pipeline_status gauge" in r.text
+    _assert_reports(r.text, pipeline_name, "Stopped", "Stopped")
+
+    start_pipeline_as_paused(pipeline_name)
+    wait_for_pipeline_reachable(pipeline_name)
+    r = get(api_url("/metrics"))
+    _assert_reports(r.text, pipeline_name, "Paused", "Paused")
+
+    resume_pipeline(pipeline_name)
+    r = get(api_url("/metrics"))
+    _assert_reports(r.text, pipeline_name, "Running", "Running")
+    assert "# TYPE records_processed_total counter" in r.text
+
+    stop_pipeline(pipeline_name)
+    r = get(api_url("/metrics"))
+    _assert_reports(r.text, pipeline_name, "Stopped", "Stopped")
 
 
 @gen_pipeline_name
