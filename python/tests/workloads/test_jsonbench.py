@@ -383,7 +383,7 @@ def build_jsonbench_pipeline(
         udf_toml=GUNZIP_TOML if needs_gunzip else "",
         compilation_profile=CompilationProfile.OPTIMIZED,
         runtime_config=RuntimeConfig(
-            provisioning_timeout_secs=60,
+            provisioning_timeout="60s",
             resources=config.resources,
             workers=FELDERA_TEST_NUM_WORKERS,
             hosts=FELDERA_TEST_NUM_HOSTS,
