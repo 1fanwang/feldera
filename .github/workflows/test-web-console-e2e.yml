@@ -81,10 +81,9 @@ jobs:
 
   # The console against a manager that requires a login. The provider is
   # scripts/dummy_oidc.py, which needs no secrets: its login page grants the
-  # chosen identity on click. The browser and the manager must both reach the
-  # provider at the issuer URL the manager is configured with, so all three
-  # share the runner's network and meet at localhost. Service containers would
-  # each get their own localhost, which is why this job runs on a VM runner.
+  # chosen identity on click. The browser and the manager must reach the
+  # provider at the same issuer URL. On the host network, all three share
+  # localhost; a service container would need a host alias on both sides.
   web-console-e2e-auth:
     if: ${{ !contains(vars.CI_SKIP_JOBS, 'web-console-e2e-auth') }}
     name: Web Console E2E Tests (OIDC login)
