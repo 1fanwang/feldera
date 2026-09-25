@@ -59,6 +59,14 @@ public class MergeGC extends Passes {
             return super.startVisit(node);
         }
 
+        /** True if {@code left} and {@code right} are the same port, or equivalent operators
+         * compute them; InsertLimiters gives each retain operator its own delay of the bounds. */
+        static boolean sameStream(OutputPort left, OutputPort right) {
+            if (left.equals(right))
+                return true;
+            return left.port() == right.port() && left.node().equivalent(right.node());
+        }
+
         @Nullable
         DBSPSimpleOperator getSingleGcSuccessor(DBSPOperator operator) {
             if (!operator.is(DBSPNoopOperator.class))
@@ -94,9 +102,10 @@ public class MergeGC extends Passes {
                     if (gc1 == null)
                         continue;
 
-                    // Cannot call directly gc0.equivalent(gc1),
-                    // since that requires them to already have the same inputs.
-                    if (gc0.getFunction().equivalent(gc1.getFunction())) {
+                    // gc0.equivalent(gc1) would also compare the data inputs, which are different noops.
+                    // Compare the retention functions and the bounds: the merged trace keeps gc0 only.
+                    if (gc0.getFunction().equivalent(gc1.getFunction()) &&
+                            sameStream(gc0.inputs.get(1), gc1.inputs.get(1))) {
                         Logger.INSTANCE.belowLevel(this, 1)
                                 .append("MergeGC ")
                                 .appendSupplier(compare::toString)
